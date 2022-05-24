@@ -8,11 +8,6 @@ Toolkit.run(async (tools) => {
     .map((l) => l.trim())
     .filter((r) => r);
 
-  if (allowedLabels.length === 0) {
-    tools.exit.failure("Missing input 'labels'");
-    return;
-  }
-
   // Validation
   if (count === "") {
     tools.exit.failure(`Missing input.count`);
@@ -38,27 +33,48 @@ Toolkit.run(async (tools) => {
 
   const appliedLabels = labels.map((label) => label.name);
 
-  let intersection = allowedLabels.filter((x) => appliedLabels.includes(x));
+  if (allowedLabels.length === 0) {
+    if (mode === "exactly" && appliedLabels.length !== count) {
+      tools.exit.failure(
+        `Label error. Requires exactly ${count} labels`
+      );
+      return;
+    }
+    if (mode === "minimum" && appliedLabels.length < count) {
+      tools.exit.failure(
+        `Label error. Requires at least ${count} labels`
+      );
+      return;
+    }
+    if (mode === "maximum" && intersection.length > count) {
+      tools.exit.failure(
+        `Label error. Requires at most ${count} labels`
+      );
+      return;
+    }
+  } else {
+    let intersection = allowedLabels.filter((x) => appliedLabels.includes(x));
 
-  if (mode === "exactly" && intersection.length !== count) {
-    tools.exit.failure(
-      `Label error. Requires exactly ${count} of: ${allowedLabels.join(", ")}`
-    );
-    return;
-  }
-
-  if (mode === "minimum" && intersection.length < count) {
-    tools.exit.failure(
-      `Label error. Requires at least ${count} of: ${allowedLabels.join(", ")}`
-    );
-    return;
-  }
-
-  if (mode === "maximum" && intersection.length > count) {
-    tools.exit.failure(
-      `Label error. Requires at most ${count} of: ${allowedLabels.join(", ")}`
-    );
-    return;
+    if (mode === "exactly" && intersection.length !== count) {
+      tools.exit.failure(
+        `Label error. Requires exactly ${count} of: ${allowedLabels.join(", ")}`
+      );
+      return;
+    }
+  
+    if (mode === "minimum" && intersection.length < count) {
+      tools.exit.failure(
+        `Label error. Requires at least ${count} of: ${allowedLabels.join(", ")}`
+      );
+      return;
+    }
+  
+    if (mode === "maximum" && intersection.length > count) {
+      tools.exit.failure(
+        `Label error. Requires at most ${count} of: ${allowedLabels.join(", ")}`
+      );
+      return;
+    }
   }
 
   tools.exit.success("Action complete");
